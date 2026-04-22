@@ -19,8 +19,8 @@ const Footer = () => {
           
           <div className="flex flex-col space-y-3">
             <p className="text-sm font-semibold text-white uppercase tracking-wider">Social</p>
-            <a href="https://github.com" className="text-sm text-gray-500 hover:text-cyan-400 transition-colors">GitHub</a>
-            <a href="https://linkedin.com" className="text-sm text-gray-500 hover:text-cyan-400 transition-colors">LinkedIn</a>
+            <a href="https://github.com/shubhamsigh01" className="text-sm text-gray-500 hover:text-cyan-400 transition-colors">GitHub</a>
+            <a href="https://www.linkedin.com/in/shubham-kumar-89674a295" className="text-sm text-gray-500 hover:text-cyan-400 transition-colors">LinkedIn</a>
           </div>
         </div>
       </div>

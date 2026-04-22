@@ -60,10 +60,14 @@ const Contact = () => {
             </div>
 
             <div className="mt-12">
-              <button className="w-full btn-secondary flex items-center justify-center space-x-2">
+              <a 
+                href="/Resume.pdf" 
+                download 
+                className="w-full btn-secondary flex items-center justify-center space-x-2"
+              >
                 <Download size={20} />
                 <span>Download Resume</span>
-              </button>
+              </a>
             </div>
           </motion.div>
 
