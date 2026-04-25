@@ -12,6 +12,11 @@
     @apply bg-[#0a0a0a] text-gray-200 font-['Poppins',sans-serif];
     overflow-x: hidden;
   }
+  /* Hide default cursor on devices that support hover (desktop) */
+  @media (hover: hover) {
+    body { cursor: none; }
+    a, button, [role="link"] { cursor: none; }
+  }
 }
 
 @layer components {

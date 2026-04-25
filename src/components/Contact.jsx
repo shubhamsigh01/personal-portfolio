@@ -1,14 +1,35 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Github, Linkedin, Download, Send } from 'lucide-react';
+import { Mail, Github, Linkedin, Download, Send, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import emailjs from '@emailjs/browser';
+
+const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || 'service_ipu7fjl';
+const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'template_n4x3wso';
+const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || '7Q2v_PtRrefEDd1zb';
 
 const Contact = () => {
-  const [isSubmitted, setIsSubmitted] = React.useState(false);
+  const formRef = useRef(null);
+  const [status, setStatus] = useState('idle'); // 'idle' | 'sending' | 'success' | 'error'
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitted(true);
-    setTimeout(() => setIsSubmitted(false), 5000);
+    setStatus('sending');
+
+    try {
+      await emailjs.sendForm(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        formRef.current,
+        EMAILJS_PUBLIC_KEY
+      );
+      setStatus('success');
+      formRef.current.reset();
+      setTimeout(() => setStatus('idle'), 6000);
+    } catch (error) {
+      console.error('EmailJS error:', error);
+      setStatus('error');
+      setTimeout(() => setStatus('idle'), 6000);
+    }
   };
 
   return (
@@ -26,6 +47,7 @@ const Contact = () => {
         </motion.div>
 
         <div className="grid md:grid-cols-2 gap-12">
+          {/* ── Left panel: contact info ── */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -50,20 +72,33 @@ const Contact = () => {
               </a>
 
               <div className="flex space-x-4 pt-4">
-                <a href="https://github.com/shubhamsingh01" target="_blank" rel="noopener noreferrer" className="w-14 h-14 rounded-2xl glass flex items-center justify-center text-white hover:text-cyan-400 hover:border-cyan-500/30 transition-all">
+                <a
+                  href="https://github.com/shubhamsigh01"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="GitHub Profile"
+                  className="w-14 h-14 rounded-2xl glass flex items-center justify-center text-white hover:text-cyan-400 hover:border-cyan-500/30 transition-all"
+                >
                   <Github size={28} />
                 </a>
-                <a href="https://linkedin.com/in/shubham-kumar-89674a295" target="_blank" rel="noopener noreferrer" className="w-14 h-14 rounded-2xl glass flex items-center justify-center text-white hover:text-purple-400 hover:border-purple-500/30 transition-all">
+                <a
+                  href="https://linkedin.com/in/shubham-kumar-89674a295"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="LinkedIn Profile"
+                  className="w-14 h-14 rounded-2xl glass flex items-center justify-center text-white hover:text-purple-400 hover:border-purple-500/30 transition-all"
+                >
                   <Linkedin size={28} />
                 </a>
               </div>
             </div>
 
             <div className="mt-12">
-              <a 
-                href="/Resume.pdf" 
-                download 
+              <a
+                href="/Resume.pdf"
+                download
                 className="w-full btn-secondary flex items-center justify-center space-x-2"
+                aria-label="Download Shubham's Resume"
               >
                 <Download size={20} />
                 <span>Download Resume</span>
@@ -71,6 +106,7 @@ const Contact = () => {
             </div>
           </motion.div>
 
+          {/* ── Right panel: form ── */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -78,56 +114,94 @@ const Contact = () => {
             transition={{ duration: 0.8 }}
             className="glass p-10 rounded-3xl"
           >
-            {isSubmitted ? (
-              <motion.div 
+            {status === 'success' && (
+              <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="h-full flex flex-col items-center justify-center text-center space-y-4 py-20"
               >
                 <div className="w-20 h-20 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400 border border-cyan-500/30 mb-4">
-                  <Send size={40} />
+                  <CheckCircle size={40} />
                 </div>
                 <h3 className="text-2xl font-bold text-white">Message Sent!</h3>
                 <p className="text-gray-400">Thank you for reaching out. I'll get back to you soon.</p>
-                <button 
-                  onClick={() => setIsSubmitted(false)}
-                  className="text-cyan-400 text-sm hover:underline mt-4"
-                >
+                <button onClick={() => setStatus('idle')} className="text-cyan-400 text-sm hover:underline mt-4">
                   Send another message
                 </button>
               </motion.div>
-            ) : (
-              <form className="space-y-6" onSubmit={handleSubmit}>
+            )}
+
+            {status === 'error' && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="h-full flex flex-col items-center justify-center text-center space-y-4 py-20"
+              >
+                <div className="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center text-red-400 border border-red-500/30 mb-4">
+                  <AlertCircle size={40} />
+                </div>
+                <h3 className="text-2xl font-bold text-white">Something went wrong</h3>
+                <p className="text-gray-400">Please email me directly at shubham6122000@gmail.com</p>
+                <button onClick={() => setStatus('idle')} className="text-cyan-400 text-sm hover:underline mt-4">
+                  Try again
+                </button>
+              </motion.div>
+            )}
+
+            {(status === 'idle' || status === 'sending') && (
+              <form ref={formRef} className="space-y-6" onSubmit={handleSubmit} noValidate>
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Name</label>
+                  <label htmlFor="contact-name" className="block text-sm font-medium text-gray-400 mb-2">Name</label>
                   <input
+                    id="contact-name"
                     type="text"
+                    name="user_name"
                     required
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-cyan-500/50 transition-colors"
+                    disabled={status === 'sending'}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-cyan-500/50 transition-colors disabled:opacity-50"
                     placeholder="John Doe"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Email</label>
+                  <label htmlFor="contact-email" className="block text-sm font-medium text-gray-400 mb-2">Email</label>
                   <input
+                    id="contact-email"
                     type="email"
+                    name="user_email"
                     required
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-cyan-500/50 transition-colors"
+                    disabled={status === 'sending'}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-cyan-500/50 transition-colors disabled:opacity-50"
                     placeholder="john@example.com"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Message</label>
+                  <label htmlFor="contact-message" className="block text-sm font-medium text-gray-400 mb-2">Message</label>
                   <textarea
+                    id="contact-message"
                     rows="4"
+                    name="message"
                     required
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-cyan-500/50 transition-colors resize-none"
+                    disabled={status === 'sending'}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-cyan-500/50 transition-colors resize-none disabled:opacity-50"
                     placeholder="Your message here..."
                   />
                 </div>
-                <button type="submit" className="w-full btn-primary flex items-center justify-center space-x-2">
-                  <span>Send Message</span>
-                  <Send size={18} />
+                <button
+                  type="submit"
+                  disabled={status === 'sending'}
+                  className="w-full btn-primary flex items-center justify-center space-x-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+                >
+                  {status === 'sending' ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      <span>Sending...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Send Message</span>
+                      <Send size={18} />
+                    </>
+                  )}
                 </button>
               </form>
             )}
